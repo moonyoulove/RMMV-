@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>RMMV文字顯示批量工具
+    </title>
+    <style>
+        html {
+            height: 100%;
+        }
+
+        body {
+            margin: 0.8rem;
+            height: calc(100% - 1.6rem);
+            border-width: 0.1rem 0.2rem 0.3rem 0.1rem;
+            border-radius: 0.5rem;
+            border-style: solid;
+            box-sizing: border-box;
+            border-color: #e6e6e6 #bbb #bbb #e6e6e6;
+        }
+
+        #headadd::after {
+            content: "+"
+        }
+
+        .delbutton::after {
+            content: "x"
+        }
+
+        #delheading {
+            visibility: collapse;
+        }
+
+        .borderlayout.wce {
+            display: flex;
+            box-sizing: content-box;
+            height: 100%;
+        }
+
+        .borderlayout.center {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            border-width: 0.0rem 0.1rem 0.0rem 0.0rem;
+            border-style: solid;
+            border-color: #e6e6e6;
+        }
+
+        .borderlayout.east {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        #div-head {
+            overflow-y: auto;
+        }
+
+        table {
+            border-color: #bbb;
+            border-width: 0.0rem;
+            border-collapse: collapse;
+        }
+
+        .borderlayout.main {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .borderlayout:not(.main):not(.wce)>div {
+            padding: 1rem;
+        }
+
+        #div-script {
+            height: 100%;
+            border: none;
+            resize: none;
+        }
+
+        #div-eventselect {
+            border-width: 0.0rem 0.0rem 0.1rem 0.0rem;
+            border-style: solid;
+            border-color: #e6e6e6;
+        }
+
+        #div-runbutton {
+            float: right;
+        }
+
+        button {
+            background-color: #2196f3;
+            border-width: 0.0rem 0.1rem 0.2rem 0.0rem;
+            border-style: solid;
+            border-color: #145e98;
+            border-radius: 0.3rem;
+            color: white;
+            line-height: 1.5rem;
+        }
+
+        .borderlayout.north {
+            background: #e6e6e6;
+            border-radius: 0.5rem 0.5rem 0.0rem 0.0rem;
+        }
+
+        button:hover {
+            background-color: #60b9ff;
+        }
+
+        button:active {
+            background-color: #097fdd;
+        }
+
+        #thd-head>tr>th {
+            word-break: keep-all;
+            font-weight: normal;
+        }
+
+        #tbd-head>tr>td {
+            word-break: break-all;
+        }
+
+        #inp-file {
+            display: none;
+        }
+
+        #span-file {
+            width: 10rem;
+            height: 1rem;
+            display: inline-block;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            overflow: hidden;
+            border: 1px dashed;
+            vertical-align: middle;
+        }
+
+        #div-test {
+            visibility: hidden;
+            font-size: 16px;
+            position: absolute;
+            z-index: -1;
+            width: 400px;
+            word-break: break-word;
+            padding: unset;
+            margin: unset;
+            border: none;
+            line-height: 16px;
+        }
+
+    </style>
+</head>
+
+<body class="borderlayout main">
+    <div class="borderlayout north">
+        <div>
+            <span>打開地圖數據(Games/專案/data/Map00x.json)
+            </span>
+            <input id="inp-file" type="file" accept="application/json">
+            <label>
+                <button id="btn-file">選擇檔案
+                </button>
+                <span id="span-file">
+                </span>
+            </label>
+            <button id="btn-upload">
+                上傳
+            </button>
+        </div>
+    </div>
+    <div class="borderlayout wce">
+        <div class="borderlayout center">
+            <div id="div-eventselect">
+                <span>事件：
+                    <select id="sel-event">
+                    </select>
+                </span>
+                <sapn>頁面：
+                    <select id="sel-page">
+                    </select>
+                </sapn>
+            </div>
+            <textarea id="div-script" contenteditable="plaintext-only"></textarea>
+            <div id="div-test"></div>
+            <div>
+                <div id="div-runbutton">
+                    <label>
+                        <input type="checkbox" id="chb-delSpace" checked>刪除頭尾空格
+                    </label>
+                    <button id="btn-insert">置入
+                    </button>
+                    <a id="a-download">
+                        <button>下載
+                        </button>
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="borderlayout east">
+            <div id="div-head">
+                <table border="1" cellpadding="4" cellspacing="0">
+                    <thead id="thd-head">
+                        <tr>
+                            <th>角色名稱
+                            </th>
+                            <th>頭像圖片名稱
+                            </th>
+                            <th>頭像索引
+                            </th>
+                            <th id="delheading" class="delbutton">
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody id="tbd-head">
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <td id="headadd" colspan="3" align="center">
+                            </td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+            <div>
+                <button id="btn-load">載入
+                </button>
+                <button id="btn-save">儲存
+                </button>
+            </div>
+        </div>
+    </div>
+    <script>
+        var mapData = {};
+        var upload = document.getElementById("btn-upload");
+        var fileInput = document.getElementById("inp-file");
+        var events = document.getElementById("sel-event");
+        var pages = document.getElementById("sel-page");
+        var download = document.getElementById("a-download");
+        var script = document.getElementById("div-script");
+        var headList = document.getElementById("tbd-head");
+        var headAdd = document.getElementById("headadd");
+        var deleteSpace = document.getElementById("chb-delSpace");
+        var insert = document.getElementById("btn-insert");
+        var load = document.getElementById("btn-load");
+        var save = document.getElementById("btn-save");
+        var fileButton = document.getElementById("btn-file");
+        var fileLabel = document.getElementById("span-file");
+        var headScroll = document.getElementById("div-head");
+        var test = document.getElementById("div-test");
+        fileButton.onclick = function() {
+            fileInput.click();
+        };
+        fileInput.onchange = function() {
+            if (fileInput.files.length == 0) {
+                fileLabel.textContent = "";
+            } else {
+                fileLabel.textContent = fileInput.files[0].name;
+            }
+        };
+        upload.onclick = function() {
+            if (fileInput.files.length == 0) {
+                return;
+            }
+            events.removeAll();
+            pages.removeAll();
+            var reader = new FileReader();
+            reader.readAsText(fileInput.files[0], "utf-8");
+            reader.onload = function() {
+                mapData = JSON.parse(reader.result);
+                if (mapData.events === undefined) {
+                    return;
+                }
+                for (var l = mapData.events.length, i = 1; i < l; i++) {
+                    if (mapData.events[i] == null) {
+                        continue;
+                    }
+                    var option = document.createElement("option");
+                    option.value = i;
+                    option.textContent = mapData.events[i].name;
+                    events.add(option, null);
+                }
+                if (events.options.length != 0) {
+                    var eventId = events.options[events.options.selectedIndex].value;
+                    var event = mapData.events[eventId];
+                    for (var l = event.pages.length, i = 0; i < l; i++) {
+                        var option = document.createElement("option");
+                        option.value = i;
+                        option.textContent = "Page " + (i + 1);
+                        pages.add(option, null);
+                    }
+                }
+            };
+        };
+        events.onchange = function() {
+            pages.removeAll();
+            var eventId = events.options[events.options.selectedIndex].value;
+            var event = mapData.events[eventId];
+            for (var l = event.pages.length, i = 0; i < l; i++) {
+                var option = document.createElement("option");
+                option.value = i;
+                option.textContent = "Page " + (i + 1);
+                pages.add(option, null);
+            }
+        };
+        insert.onclick = function(event) {
+            if (mapData.events === undefined) {
+                return;
+            }
+            var head = getHeadMap();
+            var list = [];
+            var lines = script.value.split("\n");
+            for (line of lines) {
+                if (line.match(/^\s*$/) != null) {
+                    continue;
+                }
+                if (deleteSpace.checked == true) {
+                    line.trim();
+                }
+                var index = line.indexOf("：");
+                var name = index >= 0 ? line.slice(0, index) : "";
+                var dialogue = line.slice(index + 1);
+                var img = head.get(name);
+                var nohead = false;
+                if (img == undefined) {
+                    img = ["", 0];
+                    nohead = true;
+                }
+                var code101 = {
+                    "code": 101,
+                    "indent": 0,
+                    "parameters": [img[0], img[1], 0, 2]
+                };
+                var string = name != "" ? name + "：" + dialogue : dialogue;
+                var length = nohead ? 27 : 21;
+                var blocks = breakLine(string, length);
+                list.push(code101);
+                for (lines of blocks) {
+                    for (line of lines) {
+                        var code401 = {
+                            "code": 401,
+                            "indent": 0,
+                            "parameters": [line]
+                        };
+                        list.push(code401);
+                    }
+                }
+            }
+            var eventId = events.options[events.options.selectedIndex].value;
+            var event = mapData.events[eventId];
+            var pageId = pages.options[pages.options.selectedIndex].value;
+            var page = event.pages[pageId];
+            page.list = list.concat(page.list);
+        }
+        download.onclick = function() {
+            if (mapData.events === undefined) {
+                return;
+            }
+            var blob = new Blob([JSON.stringify(mapData)], {
+                "type": "application/json"
+            });
+            this.download = fileInput.files[0].name;
+            this.href = URL.createObjectURL(blob);
+        };
+        headAdd.onclick = function() {
+            var row = headList.insertRow();
+            var name = row.insertCell();
+            var img = row.insertCell();
+            var index = row.insertCell();
+            var del = row.insertCell();
+            name.tabIndex = "0";
+            img.tabIndex = "0";
+            index.tabIndex = "0";
+            name.contentEditable = "true";
+            img.contentEditable = "true";
+            index.contentEditable = "true";
+            del.contentEditable = false;
+            del.onclick = function() {
+                var index = this.parentElement.rowIndex;
+                headList.deleteRow(index - 1);
+            }
+            del.className = "delbutton";
+            headScroll.scrollTo(headScroll.scrollLeft, headScroll.scrollHeight);
+        };
+        load.onclick = function() {
+            var storage = localStorage.getItem("headList");
+            if (!storage) {
+                return;
+            }
+            var heads = JSON.parse(storage);
+            headList.deleteAll();
+            for (head of heads) {
+                var row = headList.insertRow();
+                var name = row.insertCell();
+                var img = row.insertCell();
+                var index = row.insertCell();
+                var del = row.insertCell();
+                name.tabIndex = "0";
+                img.tabIndex = "0";
+                index.tabIndex = "0";
+                name.contentEditable = "true";
+                img.contentEditable = "true";
+                index.contentEditable = "true";
+                name.textContent = head[0];
+                img.textContent = head[1];
+                index.textContent = head[2];
+                del.contentEditable = false;
+                del.onclick = function() {
+                    var index = this.parentElement.rowIndex;
+                    headList.deleteRow(index - 1);
+                }
+                del.className = "delbutton";
+            }
+        };
+        save.onclick = function() {
+            var head = [];
+            for (row of headList.rows) {
+                var name = row.cells[0].textContent;
+                var img = row.cells[1].textContent;
+                var index = row.cells[2].textContent;
+                if (name == "" && img == "" && index == "") {
+                    continue;
+                }
+                head.push([name, img, index]);
+            }
+            localStorage.setItem("headList", JSON.stringify(head));
+        };
+        HTMLElement.prototype.removeAllChild = function() {
+            while (this.hasChildNodes()) {
+                this.removeChild(this.firstChild);
+            }
+        };
+        HTMLSelectElement.prototype.removeAll = function() {
+            var i = this.options.length;
+            while (i--) {
+                this.remove(i);
+            }
+        };
+        HTMLTableSectionElement.prototype.deleteAll = function() {
+            var i = this.rows.length;
+            while (i--) {
+                this.deleteRow(i);
+            }
+        };
+
+        function getHeadMap() {
+            var map = new Map();
+            for (row of headList.rows) {
+                var name = row.cells[0].textContent;
+                var img = row.cells[1].textContent;
+                var index = row.cells[2].textContent;
+                index = parseInt(index == "" ? "0" : index);
+                if (name != "") {
+                    map.set(name, [img, index]);
+                }
+            }
+            return map;
+        }
+
+        function breakLine(string, length) {
+            test.style.width = length * 16 + "px";
+            test.innerHTML = "";
+            var line = [];
+            var block = [];
+            var lineheight = 16;
+            for (var i = 0, l = string.length; i < l; i++) {
+                var char = string[i] == " " ? "&nbsp;" : string[i];
+                test.innerHTML += char;
+                if (test.clientHeight > lineheight) {
+                    line.push(test.textContent.slice(0, -1));
+                    test.innerHTML = string[i];
+                    if (line.length == 4) {
+                        block.push(line);
+                        line = [];
+                    }
+                }
+            }
+            line.push(test.textContent);
+            block.push(line);
+            return block;
+        }
+
+    </script>
+</body>
+
+</html>
